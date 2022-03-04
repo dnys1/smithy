@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.SourceLocation;
 import software.amazon.smithy.model.knowledge.TextIndex;
@@ -47,8 +48,8 @@ public final class NoninclusiveTermsValidator extends AbstractValidator {
     static final Map<String, List<String>> BUILT_IN_NONINCLUSIVE_TERMS = MapUtils.of(
             "master", ListUtils.of("primary", "parent", "main"),
             "slave", ListUtils.of("secondary", "replica", "clone", "child"),
-            "blacklist", ListUtils.of("denylist"),
-            "whitelist", ListUtils.of("allowlist")
+            "blacklist", ListUtils.of("denyList"),
+            "whitelist", ListUtils.of("allowList")
         );
 
     public static final class Provider extends ValidatorService.Provider {
@@ -96,6 +97,12 @@ public final class NoninclusiveTermsValidator extends AbstractValidator {
         } else {
             termsMap = new HashMap<>(BUILT_IN_NONINCLUSIVE_TERMS);
         }
+
+        //Prevent empty string from being a replacement term.
+        //It has no value and would mess up the find and replace logic.
+        if (termsMap.containsKey("")) {
+            throw new IllegalArgumentException("Empty string is not a valid non-inclusive term");
+        }
     }
 
     /**
@@ -129,60 +136,64 @@ public final class NoninclusiveTermsValidator extends AbstractValidator {
     private void getValidationEvents(TextInstance instance,
                                        Consumer<ValidationEvent> validationEventConsumer) {
         for (Map.Entry<String, List<String>> termEntry : termsMap.entrySet()) {
-            //lower casing the term will be more necessary when the terms are from config
-            if (containsTerm(instance.getText(), termEntry.getKey())) {
+            final String termLower = termEntry.getKey().toLowerCase();
+            final int startIndex = instance.getText().toLowerCase().indexOf(termLower);
+            if (startIndex != -1) {
+                final String matchedText = instance.getText().substring(startIndex, startIndex + termLower.length());
                 switch (instance.getLocationType()) {
                     case NAMESPACE:
                         validationEventConsumer.accept(ValidationEvent.builder()
                                 .sourceLocation(SourceLocation.none())
                                 .id(this.getClass().getSimpleName().replaceFirst("Validator$", ""))
                                 .severity(Severity.WARNING)
-                                .message(formatNonInclusiveTermsValidationMessage(termEntry, instance))
+                                .message(formatNonInclusiveTermsValidationMessage(termEntry, matchedText, instance))
                                 .build());
                         break;
                     case APPLIED_TRAIT:
                         validationEventConsumer.accept(warning(instance.getShape(),
                                 instance.getTrait().getSourceLocation(),
-                                formatNonInclusiveTermsValidationMessage(termEntry, instance)));
+                                formatNonInclusiveTermsValidationMessage(termEntry, matchedText, instance)));
                         break;
                     case SHAPE:
                     default:
                         validationEventConsumer.accept(warning(instance.getShape(),
                                 instance.getShape().getSourceLocation(),
-                                formatNonInclusiveTermsValidationMessage(termEntry, instance)));
+                                formatNonInclusiveTermsValidationMessage(termEntry, matchedText, instance)));
                 }
             }
         }
     }
 
-    private static boolean containsTerm(String text, String term) {
-        return text.toLowerCase().contains(term.toLowerCase());
-    }
-
     private static String formatNonInclusiveTermsValidationMessage(Map.Entry<String, List<String>> termEntry,
+                                                                   String matchedText,
                                                                    TextInstance instance) {
+        final List<String> caseCorrectedEntryValue = termEntry.getValue().stream()
+            .map(replacement -> Character.isUpperCase(matchedText.charAt(0))
+                  ? StringUtils.capitalize(replacement)
+                  : StringUtils.uncapitalize(replacement))
+            .collect(Collectors.toList());
         String replacementAddendum = termEntry.getValue().size() > 0
                 ? String.format(" Consider using one of the following terms instead: %s",
-                    ValidationUtils.tickedList(termEntry.getValue()))
+                    ValidationUtils.tickedList(caseCorrectedEntryValue))
                 : "";
         switch (instance.getLocationType()) {
             case SHAPE:
                 return String.format("%s shape uses a non-inclusive term `%s`.%s",
                         StringUtils.capitalize(instance.getShape().getType().toString()),
-                        termEntry.getKey(), replacementAddendum);
+                        matchedText, replacementAddendum);
             case NAMESPACE:
                 return String.format("%s namespace uses a non-inclusive term `%s`.%s",
-                        instance.getText(), termEntry.getKey(), replacementAddendum);
+                        instance.getText(), matchedText, replacementAddendum);
             case APPLIED_TRAIT:
                 if (instance.getTraitPropertyPath().isEmpty()) {
                     return String.format("'%s' trait has a value that contains a non-inclusive term `%s`.%s",
-                            Trait.getIdiomaticTraitName(instance.getTrait()), termEntry.getKey(),
+                            Trait.getIdiomaticTraitName(instance.getTrait()), matchedText,
                             replacementAddendum);
                 } else {
                     String valuePropertyPathFormatted = formatPropertyPath(instance.getTraitPropertyPath());
                     return String.format("'%s' trait value at path {%s} contains a non-inclusive term `%s`.%s",
                             Trait.getIdiomaticTraitName(instance.getTrait()), valuePropertyPathFormatted,
-                            termEntry.getKey(), replacementAddendum);
+                            matchedText, replacementAddendum);
                 }
             default:
                 throw new IllegalStateException();
