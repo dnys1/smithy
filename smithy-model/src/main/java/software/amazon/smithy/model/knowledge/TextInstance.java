@@ -25,55 +25,6 @@ import software.amazon.smithy.model.traits.Trait;
 import software.amazon.smithy.utils.ListUtils;
 
 public final class TextInstance {
-    public enum TextLocation {
-        SHAPE,
-        APPLIED_TRAIT,
-        NAMESPACE
-    }
-
-    public enum PathElementType {
-        KEY,
-        ARRAY_INDEX
-    }
-
-    public static final class PathElement {
-        private final PathElementType elementType;
-        private final String key;
-        private final int index;
-
-        private PathElement(String key) {
-            elementType = PathElementType.KEY;
-            this.key = key;
-            this.index = 0;
-        }
-
-        private PathElement(int index) {
-            elementType = PathElementType.ARRAY_INDEX;
-            this.key = null;
-            this.index = index;
-        }
-
-        public static PathElement ofKey(String key) {
-            return new PathElement(key);
-        }
-
-        public static  PathElement ofIndex(int index) {
-            return new PathElement(index);
-        }
-
-        public PathElementType getElementType() {
-            return elementType;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-    }
-
     private final TextLocation locationType;
     private final String text;
     private final Shape shape;
@@ -88,10 +39,10 @@ public final class TextInstance {
         Objects.requireNonNull(builder.text, "Text must be specified");
         if (builder.locationType == TextLocation.APPLIED_TRAIT) {
             if (builder.trait == null) {
-                throw new IllegalStateException("Trait must be specified for locationType="
+                throw new IllegalStateException("'trait' must be specified for locationType="
                         + builder.locationType.name());
             } else if (builder.traitPropertyPath == null) {
-                throw new IllegalStateException("PropertyPath must be specified for locationType="
+                throw new IllegalStateException("'traitPropertyPath' must be specified for locationType="
                         + builder.locationType.name());
             }
         }
@@ -165,6 +116,55 @@ public final class TextInstance {
 
         public TextInstance build() {
             return new TextInstance(this);
+        }
+    }
+
+    public enum TextLocation {
+        SHAPE,
+        APPLIED_TRAIT,
+        NAMESPACE
+    }
+
+    public enum PathElementType {
+        KEY,
+        ARRAY_INDEX
+    }
+
+    public static final class PathElement {
+        private final PathElementType elementType;
+        private final String key;
+        private final int index;
+
+        private PathElement(String key) {
+            elementType = PathElementType.KEY;
+            this.key = key;
+            this.index = 0;
+        }
+
+        private PathElement(int index) {
+            elementType = PathElementType.ARRAY_INDEX;
+            this.key = null;
+            this.index = index;
+        }
+
+        public static PathElement ofKey(String key) {
+            return new PathElement(key);
+        }
+
+        public static PathElement ofIndex(int index) {
+            return new PathElement(index);
+        }
+
+        public PathElementType getElementType() {
+            return elementType;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public int getIndex() {
+            return index;
         }
     }
 }

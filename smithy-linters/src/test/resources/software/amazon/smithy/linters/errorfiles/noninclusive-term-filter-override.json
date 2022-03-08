@@ -48,8 +48,7 @@
             {
                 "name": "NoninclusiveTerms",
                 "configuration": {
-                    "appendDefaults": false,
-                    "noninclusiveTerms": {
+                    "replaceNoninclusiveTerms": {
                         "apple": ["banana"],
                         "foo": ["bar"]
                     }

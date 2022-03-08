@@ -141,6 +141,12 @@ in APIs along with suggested alternatives.
 Noninclusive terms are case-insensitively substring matched and can have any
 number of leading or trailing whitespace or non-whitespace characters.
 
+This validator has built-in mappings from noninclusive terms to match model
+text to suggested alternatives. The configuration allows for additional terms
+to suggestions mappings to either replace or append the built-in mappings. If
+a match occurs and the suggested alternatives is empty, no suggestion is made
+in the generated warning message.
+
 Rationale
     Intent doesn't always match impact. The use of noninclusive language like
     "whitelist" and "blacklist" perpetuates bias through past association of
@@ -160,17 +166,16 @@ Configuration
        * - Property
          - Type
          - Description
-       * - noninclusiveTerms
+       * - appendNoninclusiveTerms
          - { ``keyword`` -> [ ``alternatives`` ] }
-         - A set of mappings from noninclusive terms to match in the model text
-           to suggested alternatives for those terms to be used by the validator.
-           If a match occurs and alternatives is empty, no suggestion is made in
-           the generated warning message.
-       * - appendDefaults
-         - ``boolean``
-         - If set to true the mappings provided in the configuration should be
-           appended to the validator's builtin term to alternatives mappings.
-           Otherwise, the configured mappings will override the default.
+         - A set of noninclusive terms to suggestions to append to the built-in 
+           mappings. This property is not required and defaults to an empty set.
+           Cannot specify with `replaceNoninclusiveTerms`
+       * - replaceNoninclusiveTerms
+         - { ``keyword`` -> [ ``alternatives`` ] }
+         - A set of noninclusive terms to suggestions to replace the built-in 
+           mappings. This property is not required and defaults to an empty set.
+           Cannot specify with `appendNoninclusiveTerms`
 
 Example:
 
@@ -181,8 +186,7 @@ Example:
     metadata validators = [{
         name: "NoninclusiveTerms"
         configuration: {
-            appendDefaults: true,
-            noninclusiveTerms: {
+            appendNoninclusiveTerms: {
                 mankind: ["humankind"],
                 mailman: ["mail carrier", "postal worker"]
             }
