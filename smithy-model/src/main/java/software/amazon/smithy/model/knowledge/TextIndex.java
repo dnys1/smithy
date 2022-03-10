@@ -84,7 +84,7 @@ public final class TextIndex implements KnowledgeIndex {
             Trait trait,
             Shape parentShape,
             Collection<TextInstance> textInstances,
-            Deque<TextInstance.PathElement> propertyPath,
+            Deque<String> propertyPath,
             Model model,
             Shape currentTraitPropertyShape) {
         if (trait.toShapeId().equals(ReferencesTrait.ID)) {
@@ -100,7 +100,7 @@ public final class TextIndex implements KnowledgeIndex {
         } else if (node.isObjectNode()) {
             ObjectNode objectNode = node.expectObjectNode();
             objectNode.getStringMap().entrySet().forEach(memberEntry -> {
-                propertyPath.offerLast(TextInstance.PathElement.ofKey(memberEntry.getKey()));
+                propertyPath.offerLast(memberEntry.getKey());
                 Shape memberTypeShape = getChildMemberShapeType(memberEntry.getKey(),
                         model, currentTraitPropertyShape);
                 if (memberTypeShape == null) {
@@ -121,7 +121,7 @@ public final class TextIndex implements KnowledgeIndex {
         } else if (node.isArrayNode()) {
             int index = 0;
             for (Node nodeElement : node.expectArrayNode().getElements()) {
-                propertyPath.offerLast(TextInstance.PathElement.ofIndex(index));
+                propertyPath.offerLast(Integer.toString(index));
                 Shape memberTypeShape = getChildMemberShapeType(null,
                         model, currentTraitPropertyShape);
                 computeTextInstancesForAppliedTrait(nodeElement, trait, parentShape, textInstances,

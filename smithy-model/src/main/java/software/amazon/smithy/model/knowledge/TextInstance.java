@@ -29,7 +29,7 @@ public final class TextInstance {
     private final String text;
     private final Shape shape;
     private final Trait trait;
-    private final List<PathElement> traitPropertyPath;
+    private final List<String> traitPropertyPath;
 
     private TextInstance(Builder builder) {
         Objects.requireNonNull(builder.locationType, "LocationType must be specified");
@@ -70,7 +70,7 @@ public final class TextInstance {
         return trait;
     }
 
-    public List<PathElement> getTraitPropertyPath() {
+    public List<String> getTraitPropertyPath() {
         return traitPropertyPath;
     }
 
@@ -83,7 +83,7 @@ public final class TextInstance {
         private String text;
         private Shape shape;
         private Trait trait;
-        private List<PathElement> traitPropertyPath = new ArrayList<>();
+        private List<String> traitPropertyPath = new ArrayList<>();
 
         private Builder() { }
 
@@ -97,7 +97,7 @@ public final class TextInstance {
             return this;
         }
 
-        public Builder traitPropertyPath(Deque<PathElement> traitPropertyPath) {
+        public Builder traitPropertyPath(Deque<String> traitPropertyPath) {
             this.traitPropertyPath = traitPropertyPath != null
                     ? traitPropertyPath.stream().collect(ListUtils.toUnmodifiableList())
                     : Collections.emptyList();
@@ -123,48 +123,5 @@ public final class TextInstance {
         SHAPE,
         APPLIED_TRAIT,
         NAMESPACE
-    }
-
-    public enum PathElementType {
-        KEY,
-        ARRAY_INDEX
-    }
-
-    public static final class PathElement {
-        private final PathElementType elementType;
-        private final String key;
-        private final int index;
-
-        private PathElement(String key) {
-            elementType = PathElementType.KEY;
-            this.key = key;
-            this.index = 0;
-        }
-
-        private PathElement(int index) {
-            elementType = PathElementType.ARRAY_INDEX;
-            this.key = null;
-            this.index = index;
-        }
-
-        public static PathElement ofKey(String key) {
-            return new PathElement(key);
-        }
-
-        public static PathElement ofIndex(int index) {
-            return new PathElement(index);
-        }
-
-        public PathElementType getElementType() {
-            return elementType;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public int getIndex() {
-            return index;
-        }
     }
 }

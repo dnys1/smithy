@@ -20,10 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.SourceLocation;
@@ -139,6 +136,7 @@ public final class NoninclusiveTermsValidator extends AbstractValidator {
                 final String matchedText = instance.getText().substring(startIndex, startIndex + termLower.length());
                 switch (instance.getLocationType()) {
                     case NAMESPACE:
+                        //Cannot use any warning() overloads because there is no shape associated with the event.
                         events.add(ValidationEvent.builder()
                                 .sourceLocation(SourceLocation.none())
                                 .id(this.getClass().getSimpleName().replaceFirst("Validator$", ""))
@@ -198,36 +196,7 @@ public final class NoninclusiveTermsValidator extends AbstractValidator {
         }
     }
 
-    /**
-     * The complexity here is necessary to format property path indexes as parentKey[index] instead
-     * of parentKey.[index]. It's subtle, but programmers are quite used to not seeing the dot separator
-     * before an index.  It is not possible to conditionalize the delimiter of a string join, so
-     * this logic has to be written
-     */
-    private static String formatPropertyPath(List<TextInstance.PathElement> propertyPath) {
-        Objects.requireNonNull(propertyPath);
-        Function<TextInstance.PathElement, String> elementToString = pathElement -> {
-            switch (pathElement.getElementType()) {
-                case KEY:
-                    return pathElement.getKey();
-                case ARRAY_INDEX:
-                    return "[" + pathElement.getIndex() + "]";
-                default:
-                    throw new IllegalStateException();
-            }
-        };
-
-        StringBuilder builder = new StringBuilder();
-        ListIterator<TextInstance.PathElement> pathElementIterator = propertyPath.listIterator();
-        while (pathElementIterator.hasNext()) {
-            boolean hasPrevious = pathElementIterator.hasPrevious();
-            TextInstance.PathElement pathElement = pathElementIterator.next();
-            if (hasPrevious && pathElement.getElementType() != TextInstance.PathElementType.ARRAY_INDEX) {
-                builder.append(".");
-            }
-            builder.append(elementToString.apply(pathElement));
-        }
-
-        return builder.toString();
+    private static String formatPropertyPath(List<String> traitPropertyPath) {
+        return String.join("/", traitPropertyPath);
     }
 }
