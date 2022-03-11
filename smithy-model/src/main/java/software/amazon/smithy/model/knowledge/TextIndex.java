@@ -40,6 +40,7 @@ public final class TextIndex implements KnowledgeIndex {
 
     public TextIndex(Model model) {
         Set<String> visitedNamespaces = new HashSet<>();
+        // Validating the prelude is a feature for internal-only Smithy development
         Node validatePreludeNode = model.getMetadata().get(TraitValueValidator.VALIDATE_PRELUDE);
         boolean validatePrelude = validatePreludeNode != null
                 ? validatePreludeNode.expectBooleanNode().getValue()
@@ -47,10 +48,7 @@ public final class TextIndex implements KnowledgeIndex {
 
         model.shapes().filter(shape -> validatePrelude || !Prelude.isPreludeShape(shape)).forEach(shape -> {
             if (visitedNamespaces.add(shape.getId().getNamespace())) {
-                textInstanceList.add(TextInstance.builder()
-                    .locationType(TextInstance.TextLocation.NAMESPACE)
-                    .text(shape.getId().getNamespace())
-                    .build());
+                textInstanceList.add(TextInstance.createNamespaceText(shape.getId().getNamespace()));
             }
             computeShapeTextInstances(shape, textInstanceList, model);
         });
@@ -67,11 +65,7 @@ public final class TextIndex implements KnowledgeIndex {
     private static void computeShapeTextInstances(Shape shape,
               Collection<TextInstance> textInstances,
               Model model) {
-        TextInstance.Builder builder = TextInstance.builder()
-                .locationType(TextInstance.TextLocation.SHAPE)
-                .shape(shape);
-        builder.text(shape.getId().getMember().orElseGet(() -> shape.getId().getName()));
-        textInstances.add(builder.build());
+        textInstances.add(TextInstance.createShapeInstance(shape));
 
         for (Trait trait : shape.getAllTraits().values()) {
             Shape traitShape = model.expectShape(trait.toShapeId());
@@ -90,13 +84,8 @@ public final class TextIndex implements KnowledgeIndex {
         if (trait.toShapeId().equals(ReferencesTrait.ID)) {
             //Skip ReferenceTrait because it is referring to other shape names already being checked
         } else if (node.isStringNode()) {
-            textInstances.add(TextInstance.builder()
-                    .locationType(TextInstance.TextLocation.APPLIED_TRAIT)
-                    .shape(parentShape)
-                    .trait(trait)
-                    .traitPropertyPath(propertyPath)
-                    .text(node.expectStringNode().getValue())
-                    .build());
+            textInstances.add(TextInstance.createTraitInstance(
+                node.expectStringNode().getValue(), parentShape, trait, propertyPath));
         } else if (node.isObjectNode()) {
             ObjectNode objectNode = node.expectObjectNode();
             objectNode.getStringMap().entrySet().forEach(memberEntry -> {
@@ -106,13 +95,8 @@ public final class TextIndex implements KnowledgeIndex {
                 if (memberTypeShape == null) {
                     //This means the "property" key value isn't modeled in the trait's structure/shape definition
                     //and this text instance is unique
-                    textInstances.add(TextInstance.builder()
-                            .locationType(TextInstance.TextLocation.APPLIED_TRAIT)
-                            .shape(parentShape)
-                            .trait(trait)
-                            .text(memberEntry.getKey())
-                            .traitPropertyPath(propertyPath)
-                            .build());
+                    textInstances.add(TextInstance.createTraitInstance(
+                        memberEntry.getKey(), parentShape, trait, propertyPath));
                 }
                 computeTextInstancesForAppliedTrait(memberEntry.getValue(), trait, parentShape, textInstances,
                         propertyPath, model, memberTypeShape);

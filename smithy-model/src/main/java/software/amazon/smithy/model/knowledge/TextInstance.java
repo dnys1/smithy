@@ -74,6 +74,32 @@ public final class TextInstance {
         return traitPropertyPath;
     }
 
+    public static TextInstance createNamespaceText(String namespace) {
+        return TextInstance.builder()
+                    .locationType(TextInstance.TextLocation.NAMESPACE)
+                    .text(namespace)
+                    .build();
+    }
+
+    public static TextInstance createShapeInstance(Shape shape) {
+        return TextInstance.builder()
+                .locationType(TextInstance.TextLocation.SHAPE)
+                .shape(shape)
+                //If shape is a member shape, we always care about member name.
+                .text(shape.getId().getMember().orElseGet(() -> shape.getId().getName()))
+            .build();
+    }
+
+    public static TextInstance createTraitInstance(String text, Shape shape, Trait trait, Deque<String> traitPath) {
+        return TextInstance.builder()
+                            .locationType(TextInstance.TextLocation.APPLIED_TRAIT)
+                            .shape(shape)
+                            .trait(trait)
+                            .traitPropertyPath(traitPath)
+                            .text(text)
+                            .build();
+    }
+
     public static Builder builder() {
         return new Builder();
     }
