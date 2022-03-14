@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.traits.Trait;
+import software.amazon.smithy.utils.ListUtils;
 
 public final class TextInstance {
     private final TextLocation locationType;
@@ -38,7 +39,7 @@ public final class TextInstance {
         this.shape = shape;
         this.trait = trait;
         this.traitPropertyPath = traitPropertyPath != null
-            ? List.copyOf(traitPropertyPath)
+            ? ListUtils.copyOf(traitPropertyPath)
             : null;
     }
 
