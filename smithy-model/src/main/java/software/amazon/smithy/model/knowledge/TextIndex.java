@@ -46,12 +46,14 @@ public final class TextIndex implements KnowledgeIndex {
                 ? validatePreludeNode.expectBooleanNode().getValue()
                 : false;
 
-        model.shapes().filter(shape -> validatePrelude || !Prelude.isPreludeShape(shape)).forEach(shape -> {
-            if (visitedNamespaces.add(shape.getId().getNamespace())) {
+        for (final Shape shape : model.toSet()) {
+            if (validatePrelude || !Prelude.isPreludeShape(shape)) {
+                if (visitedNamespaces.add(shape.getId().getNamespace())) {
                 textInstanceList.add(TextInstance.createNamespaceText(shape.getId().getNamespace()));
+                }
+                computeShapeTextInstances(shape, textInstanceList, model);
             }
-            computeShapeTextInstances(shape, textInstanceList, model);
-        });
+        }
     }
 
     public static TextIndex of(Model model) {
