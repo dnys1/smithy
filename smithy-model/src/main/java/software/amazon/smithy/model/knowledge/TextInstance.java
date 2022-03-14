@@ -29,7 +29,8 @@ public final class TextInstance {
     private final Trait trait;
     private final List<String> traitPropertyPath;
 
-    private TextInstance(final TextLocation locationType,
+    private TextInstance(
+            final TextLocation locationType,
             final String text,
             final Shape shape,
             final Trait trait,
@@ -44,12 +45,12 @@ public final class TextInstance {
     }
 
     static TextInstance createNamespaceText(String namespace) {
-        Objects.requireNonNull(namespace, "Namespace must be specified");
+        Objects.requireNonNull(namespace, "'namespace' must be specified");
         return new TextInstance(TextLocation.NAMESPACE, namespace, null, null, null);
     }
 
     static TextInstance createShapeInstance(Shape shape) {
-        Objects.requireNonNull(shape, "Shape must be specified");
+        Objects.requireNonNull(shape, "'shape' must be specified");
         return new TextInstance(TextLocation.SHAPE, shape.getId().getMember().orElseGet(() -> shape.getId().getName()),
                         shape, null, null);
     }

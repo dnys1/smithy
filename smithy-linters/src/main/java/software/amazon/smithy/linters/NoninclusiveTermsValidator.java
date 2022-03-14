@@ -160,9 +160,10 @@ public final class NoninclusiveTermsValidator extends AbstractValidator {
         return events;
     }
 
-    private static String formatNonInclusiveTermsValidationMessage(Map.Entry<String, List<String>> termEntry,
-                                                                   String matchedText,
-                                                                   TextInstance instance) {
+    private static String formatNonInclusiveTermsValidationMessage(
+            Map.Entry<String, List<String>> termEntry,
+            String matchedText,
+            TextInstance instance) {
         final List<String> caseCorrectedEntryValue = termEntry.getValue().stream()
             .map(replacement -> Character.isUpperCase(matchedText.charAt(0))
                   ? StringUtils.capitalize(replacement)

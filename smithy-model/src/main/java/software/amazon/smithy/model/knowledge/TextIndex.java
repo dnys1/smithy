@@ -49,7 +49,7 @@ public final class TextIndex implements KnowledgeIndex {
         for (final Shape shape : model.toSet()) {
             if (validatePrelude || !Prelude.isPreludeShape(shape)) {
                 if (visitedNamespaces.add(shape.getId().getNamespace())) {
-                textInstanceList.add(TextInstance.createNamespaceText(shape.getId().getNamespace()));
+                    textInstanceList.add(TextInstance.createNamespaceText(shape.getId().getNamespace()));
                 }
                 computeShapeTextInstances(shape, textInstanceList, model);
             }
@@ -64,9 +64,10 @@ public final class TextIndex implements KnowledgeIndex {
         return Collections.unmodifiableList(textInstanceList);
     }
 
-    private static void computeShapeTextInstances(Shape shape,
-              Collection<TextInstance> textInstances,
-              Model model) {
+    private static void computeShapeTextInstances(
+            Shape shape,
+            Collection<TextInstance> textInstances,
+            Model model) {
         textInstances.add(TextInstance.createShapeInstance(shape));
 
         for (Trait trait : shape.getAllTraits().values()) {
@@ -76,7 +77,8 @@ public final class TextIndex implements KnowledgeIndex {
         }
     }
 
-    private static void computeTextInstancesForAppliedTrait(Node node,
+    private static void computeTextInstancesForAppliedTrait(
+            Node node,
             Trait trait,
             Shape parentShape,
             Collection<TextInstance> textInstances,
