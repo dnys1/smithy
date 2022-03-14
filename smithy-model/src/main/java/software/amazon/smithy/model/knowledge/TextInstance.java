@@ -43,18 +43,18 @@ public final class TextInstance {
             : null;
     }
 
-    public static TextInstance createNamespaceText(String namespace) {
+    static TextInstance createNamespaceText(String namespace) {
         Objects.requireNonNull(namespace, "Namespace must be specified");
         return new TextInstance(TextLocation.NAMESPACE, namespace, null, null, null);
     }
 
-    public static TextInstance createShapeInstance(Shape shape) {
+    static TextInstance createShapeInstance(Shape shape) {
         Objects.requireNonNull(shape, "Shape must be specified");
         return new TextInstance(TextLocation.SHAPE, shape.getId().getMember().orElseGet(() -> shape.getId().getName()),
                         shape, null, null);
     }
 
-    public static TextInstance createTraitInstance(String text, Shape shape, Trait trait, Deque<String> traitPath) {
+    static TextInstance createTraitInstance(String text, Shape shape, Trait trait, Deque<String> traitPath) {
         Objects.requireNonNull(trait, "'trait' must be specified");
         Objects.requireNonNull(shape, "'shape' must be specified");
         Objects.requireNonNull(text, "'text' must be specified");
