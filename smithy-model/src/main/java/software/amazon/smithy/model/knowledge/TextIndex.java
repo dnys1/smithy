@@ -34,6 +34,9 @@ import software.amazon.smithy.model.traits.Trait;
 import software.amazon.smithy.model.validation.validators.TraitValueValidator;
 import software.amazon.smithy.utils.SmithyUnstableApi;
 
+/**
+ * Index containing the full set of {@link TextInstance}s associated with a model.
+ */
 @SmithyUnstableApi
 public final class TextIndex implements KnowledgeIndex {
     private final List<TextInstance> textInstanceList = new ArrayList<>();
@@ -67,7 +70,8 @@ public final class TextIndex implements KnowledgeIndex {
     private static void computeShapeTextInstances(
             Shape shape,
             Collection<TextInstance> textInstances,
-            Model model) {
+            Model model
+    ) {
         textInstances.add(TextInstance.createShapeInstance(shape));
 
         for (Trait trait : shape.getAllTraits().values()) {
@@ -84,7 +88,8 @@ public final class TextIndex implements KnowledgeIndex {
             Collection<TextInstance> textInstances,
             Deque<String> propertyPath,
             Model model,
-            Shape currentTraitPropertyShape) {
+            Shape currentTraitPropertyShape
+    ) {
         if (trait.toShapeId().equals(ReferencesTrait.ID)) {
             //Skip ReferenceTrait because it is referring to other shape names already being checked
         } else if (node.isStringNode()) {
